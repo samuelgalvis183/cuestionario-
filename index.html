@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuestionario Interactivo de Tecnología - Samuel Galvis</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 700px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    h1, h2 { text-align: center; }
+    .autor { font-size: 1.1em; text-align: center; margin-bottom: 10px; opacity: 0.9; }
+    .proposito { text-align: center; margin-bottom: 30px; font-style: italic; }
+    .hidden { display: none; }
+    .options { margin: 20px 0; }
+    .option {
+      background: rgba(255,255,255,0.2);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .option:hover { background: rgba(255,255,255,0.4); }
+    .option.selected { background: #00d4ff; }
+    .btn {
+      padding: 12px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #00d4ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover { background: #00ffaa; }
+    .btn:disabled { background: #555; cursor: not-allowed; }
+    .jarvis {
+      background: rgba(0,0,0,0.5);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-style: italic;
+    }
+    .progress {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.2em;
+    }
+    .final-score {
+      text-align: center;
+      font-size: 2em;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="intro">
+      <div class="autor">Autor: Samuel Galvis</div>
+      <h1>Cuestionario Interactivo de Tecnología, Software y Redes</h1>
+      <p class="proposito">
+        Este cuestionario tiene como propósito evaluar y reforzar tus conocimientos 
+        en temas fundamentales de tecnología, desarrollo de software y redes de computadores 
+        de forma interactiva y divertida.
+      </p>
+      <input type="text" id="nombre" placeholder="Escribe tu nombre" style="width:100%; padding:12px; border-radius:8px; border:none; margin-bottom:20px; font-size:1.1em;">
+      <button class="btn" onclick="iniciarCuestionario()">Comenzar Cuestionario</button>
+    </div>
+
+    <div id="quiz" class="hidden">
+      <div class="progress">Pregunta <span id="numPregunta"></span> de 20 | Intentos usados: <span id="intentos">0</span></div>
+      <h2 id="pregunta"></h2>
+      <div class="options" id="opciones"></div>
+      
+      <div style="text-align:center;">
+        <button class="btn" id="btnAtras" onclick="anteriorPregunta()">← Atrás</button>
+        <button class="btn" id="btnContinuar" onclick="siguientePregunta()" disabled>Continuar →</button>
+      </div>
+
+      <div style="text-align:center; margin-top:20px;">
+        <button class="btn" onclick="mostrarPista()" style="background:#ff9500;">Pedir pista a JARVIS</button>
+      </div>
+      <div id="pista" class="jarvis hidden">
+        <strong>JARVIS:</strong> <span id="textoPista"></span>
+      </div>
+    </div>
+
+    <div id="resultado" class="hidden">
+      <h1>¡Cuestionario terminado, <span id="nombreFinal"></span>!</h1>
+      <div class="final-score">Nota final: <span id="notaFinal"></span>/20</div>
+      <p>Intentos totales usados: <strong id="intentosFinal"></strong></p>
+      <h2>Resumen de respuestas</h2>
+      <div id="resumen"></div>
+      <button class="btn" onclick="location.reload()">Volver a intentar</button>
+    </div>
+  </div>
+
+  <script>
+    const preguntas = [
+      { q: "¿Qué significa HTML?", a: "HyperText Markup Language", opciones: ["HyperText Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"], pista: "Es el lenguaje de marcado estándar para crear páginas web." },
+      { q: "¿Qué puerto usa por defecto HTTP?", a: "80", opciones: ["80", "443", "22", "25"], pista: "Es un número menor que 100 y muy común en navegadores." },
+      { q: "¿Qué protocolo se usa para correo electrónico seguro?", a: "IMAPS", opciones: ["IMAP", "IMAPS", "POP3", "SMTP"], pista: "Es la versión segura de IMAP (puerto 993)." },
+      { q: "¿Qué significa CSS?", a: "Cascading Style Sheets", opciones: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System", "Colorful Style Sheets"], pista: "Se refiere a hojas de estilo en cascada." },
+      { q: "¿Cuál NO es un lenguaje de programación?", a: "HTML", opciones: ["Python", "Java", "HTML", "C++"], pista: "Es un lenguaje de marcado, no de lógica." },
+      { q: "¿Qué comando muestra la tabla de enrutamiento en Windows?", a: "route print", opciones: ["ipconfig", "netstat -r", "route print", "tracert"], pista: "Empieza con 'route'." },
+      { q: "¿Qué significa API?", a: "Application Programming Interface", opciones: ["Application Programming Interface", "Advanced Programming Interface", "Application Protocol Interface", "Automatic Programming Interface"], pista: "Es la interfaz que permite que dos aplicaciones se comuniquen." },
+      { q: "¿Qué capa del modelo OSI se encarga del enrutamiento?", a: "Capa 3 - Red", opciones: ["Capa 2 - Enlace", "Capa 3 - Red", "Capa 4 - Transporte", "Capa 7 - Aplicación"], pista: "Es donde trabajan los routers y la dirección IP." },
+      { q: "¿Qué significa SQL?", a: "Structured Query Language", opciones: ["Simple Query Language", "Structured Query Language", "System Query Language", "Standard Query Language"], pista: "Se usa para consultar bases de datos relacionales." },
+      { q: "¿Qué framework de JavaScript es desarrollado por Facebook?", a: "React", opciones: ["Vue", "Angular", "React", "Svelte"], pista: "Su logo es un átomo azul." },
+      { q: "¿Qué significa VPN?", a: "Virtual Private Network", opciones: ["Virtual Private Network", "Very Private Network", "Visual Private Network", "Virtual Public Network"], pista: "Crea un túnel seguro en Internet." },
+      { q: "¿Qué comando Linux muestra los procesos activos?", a: "ps aux", opciones: ["top", "ps aux", "htop", "netstat"], pista: "Muestra todos los procesos de todos los usuarios." },
+      { q: "¿Qué tipo de dirección IP es 192.168.1.10?", a: "Privada", opciones: ["Pública", "Privada", "APIPA", "Loopback"], pista: "Pertenece al rango reservado para redes locales." },
+      { q: "¿Qué significa JSON?", a: "JavaScript Object Notation", opciones: ["JavaScript Object Notation", "Java Source Object Notation", "JavaScript Online Notation", "Java Standard Object Notation"], pista: "Es un formato ligero para intercambio de datos." },
+      { q: "¿Qué protocolo usa HTTPS?", a: "TLS/SSL", opciones: ["TCP", "UDP", "TLS/SSL", "IPSec"], pista: "Cifra la comunicación entre cliente y servidor." },
+      { q: "¿Qué significa RAM?", a: "Random Access Memory", opciones: ["Read Access Memory", "Random Access Memory", "Run Access Memory", "Rapid Access Memory"], pista: "Es la memoria volátil del ordenador." },
+      { q: "¿Qué empresa creó Git?", a: "Linus Torvalds", opciones: ["Microsoft", "Google", "Linus Torvalds", "GitHub"], pista: "Es la misma persona que creó Linux." },
+      { q: "¿Qué significa DOM en desarrollo web?", a: "Document Object Model", opciones: ["Data Object Model", "Document Object Model", "Dynamic Object Model", "Direct Object Manipulation"], pista: "Permite a JavaScript modificar el contenido de una página." },
+      { q: "¿Qué puerto usa SSH?", a: "22", opciones: ["21", "22", "23", "25"], pista: "Es el puerto estándar para acceso remoto seguro." },
+      { q: "¿Qué significa OOP?", a: "Object-Oriented Programming", opciones: ["Object-Oriented Programming", "Order of Operations Programming", "Open Online Programming", "Original Object Protocol"], pista: "Programación basada en objetos y clases." },
+      { q: "¿Qué comando clona un repositorio Git?", a: "git clone", opciones: ["git pull", "git clone", "git fetch", "git copy"], pista: "Es el primer comando que usas para copiar un repositorio remoto." },
+      { q: "¿Qué significa URL?", a: "Uniform Resource Locator", opciones: ["Universal Resource Link", "Uniform Resource Locator", "Unique Resource Locator", "Uniform Reference Link"], pista: "Es la dirección web que escribes en el navegador." },
+      { q: "¿Qué base de datos es NoSQL y orientada a documentos?", a: "MongoDB", opciones: ["MySQL", "PostgreSQL", "MongoDB", "SQLite"], pista: "Guarda datos en formato parecido a JSON." },
+      { q: "¿Qué significa DNS?", a: "Domain Name System", opciones: ["Data Network System", "Domain Name System", "Dynamic Network Service", "Direct Name Server"], pista: "Traduce nombres como google.com a direcciones IP." },
+      { q: "¿Qué lenguaje usa Android principalmente?", a: "Kotlin", opciones: ["Swift", "Java", "Kotlin", "Python"], pista: "Google lo declaró como lenguaje preferido en 2019." },
+      { q: "¿Qué protocolo usa el correo saliente?", a: "SMTP", opciones: ["POP3", "IMAP", "SMTP", "FTP"], pista: "Es el que envía los emails." },
+      { q: "¿Qué significa HTTP 404?", a: "Not Found", opciones: ["OK", "Forbidden", "Not Found", "Internal Server Error"], pista: "Significa que la página no se encontró." },
+      { q: "¿Qué framework backend de Node.js es muy popular?", a: "Express", opciones: ["Django", "Flask", "Express", "Laravel"], pista: "Es minimalista y muy usado con Node.js." },
+      { q: "¿Qué significa IPv6?", a: "Internet Protocol version 6", opciones: ["Internet Protocol version 6", "Improved Protocol version 6", "International Protocol version 6", "Internet Packet version 6"], pista: "Es el sucesor de IPv4 con direcciones más largas." },
+      { q: "¿Qué comando muestra la IP en Linux?", a: "ip addr", opciones: ["ifconfig", "ip addr", "ipconfig", "netstat"], pista: "Es el comando moderno que reemplazó a ifconfig." },
+      { q: "¿Qué significa REST?", a: "Representational State Transfer", opciones: ["Rapid External System Transfer", "Representational State Transfer", "Remote System Technology", "Real-time State Transfer"], pista: "Es un estilo arquitectónico para APIs web." },
+      { q: "¿Qué empresa creó Docker?", a: "Docker Inc.", opciones: ["Google", "Microsoft", "Docker Inc.", "Amazon"], pista: "El logo es una ballena llevando contenedores." },
+      { q: "¿Qué significa SSD?", a: "Solid State Drive", opciones: ["Super Speed Drive", "Solid State Drive", "System Storage Device", "Secure State Disk"], pista: "Es mucho más rápido que un HDD tradicional." },
+      { q: "¿Qué protocolo usa BitTorrent?", a: "P2P", opciones: ["HTTP", "FTP", "P2P", "SMTP"], pista: "Es peer-to-peer, no cliente-servidor." },
+      { q: "¿Qué significa JWT?", a: "JSON Web Token", opciones: ["Java Web Token", "JSON Web Token", "JavaScript Web Token", "Joint Web Token"], pista: "Se usa mucho para autenticación en APIs." },
+      { q: "¿Qué comando crea una rama en Git?", a: "git branch nombre", opciones: ["git checkout -b nombre", "git branch nombre", "git new-branch", "git create"], pista: "Solo crea la rama, no te cambia a ella." },
+      { q: "¿Qué significa CDN?", a: "Content Delivery Network", opciones: ["Central Delivery Network", "Content Delivery Network", "Cloud Data Network", "Cache Delivery Node"], pista: "Sirve archivos estáticos desde servidores cercanos al usuario." },
+      { q: "¿Qué lenguaje creó Guido van Rossum?", a: "Python", opciones: ["Ruby", "PHP", "Python", "Perl"], pista: "Su nombre viene de Monty Python." },
+      { q: "¿Qué puerto usa MySQL por defecto?", a: "3306", opciones: ["3306", "5432", "8080", "27017"], pista: "Es un número de cuatro cifras que empieza por 33." },
+      { q: "¿Qué significa IDE?", a: "Integrated Development Environment", opciones: ["Internet Development Environment", "Integrated Development Environment", "Intelligent Design Editor", "Interactive Development Engine"], pista: "Ejemplos: VS Code, IntelliJ, PyCharm." }
+    ];
+
+    let nombreUsuario = "";
+    let preguntasSeleccionadas = [];
+    let indiceActual = 0;
+    let respuestasUsuario = [];
+    let intentos = 0;
+
+    function iniciarCuestionario() {
+      nombreUsuario = document.getElementById("nombre").value.trim() || "Usuario";
+      if (!nombreUsuario) {
+        alert("Por favor escribe tu nombre");
+        return;
+      }
+      document.getElementById("intro").classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+
+      // Seleccionar 20 preguntas al azar
+      const copia = [...preguntas];
+      preguntasSeleccionadas = [];
+      while (preguntasSeleccionadas.length < 20) {
+        const i = Math.floor(Math.random() * copia.length);
+        preguntasSeleccionadas.push(copia.splice(i, 1)[0]);
+      }
+      mostrarPregunta();
+    }
+
+    function mostrarPregunta() {
+      const preg = preguntasSeleccionadas[indiceActual];
+      document.getElementById("numPregunta").textContent = indiceActual + 1;
+      document.getElementById("intentos").textContent = intentos;
+      document.getElementById("pregunta").textContent = preg.q;
+      document.getElementById("pista").classList.add("hidden");
+
+      const opcionesDiv = document.getElementById("opciones");
+      opcionesDiv.innerHTML = "";
+      preg.opciones.forEach(op => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = op;
+        div.onclick = () => seleccionarOpcion(op, div);
+        opcionesDiv.appendChild(div);
+      });
+
+      // Restaurar selección si ya respondió
+      if (respuestasUsuario[indiceActual]) {
+        document.querySelectorAll(".option").forEach(d => {
+          if (d.textContent === respuestasUsuario[indiceActual].respuesta) {
+            d.classList.add("selected");
+          }
+        });
+        document.getElementById("btnContinuar").disabled = false;
+      } else {
+        document.getElementById("btnContinuar").disabled = true;
+      }
+
+      document.getElementById("btnAtras").disabled = indiceActual === 0;
+    }
+
+    function seleccionarOpcion(opcion, elemento) {
+      document.querySelectorAll(".option").forEach(el => el.classList.remove("selected"));
+      elemento.classList.add("selected");
+      respuestasUsuario[indiceActual] = {
+        respuesta: opcion,
+        correcta: opcion === preguntasSeleccionadas[indiceActual].a
+      };
+      if (!respuestasUsuario[indiceActual].intentadoAntes) {
+        intentos++;
+        respuestasUsuario[indiceActual].intentadoAntes = true;
+      }
+      document.getElementById("btnContinuar").disabled = false;
+    }
+
+    function siguientePregunta() {
+      if (indiceActual < 19) {
+        indiceActual++;
+        mostrarPregunta();
+      } else {
+        finalizarCuestionario();
+      }
+    }
+
+    function anteriorPregunta() {
+      if (indiceActual > 0) {
+        indiceActual--;
+        mostrarPregunta();
+      }
+    }
+
+    function mostrarPista() {
+      const pista = preguntasSeleccionadas[indiceActual].pista;
+      document.getElementById("textoPista").textContent = pista;
+      document.getElementById("pista").classList.remove("hidden");
+    }
+
+    function finalizarCuestionario() {
+      document.getElementById("quiz").classList.add("hidden");
+      document.getElementById("resultado").classList.remove("hidden");
+
+      let correctas = 0;
+      let resumenHTML = "";
+
+      respuestasUsuario.forEach((r, i) => {
+        if (r.correcta) correctas++;
+        const preg = preguntasSeleccionadas[i];
+        const icono = r.correcta ? "✓" : "✗";
+        const color = r.correcta ? "#00ffaa" : "#ff6b6b";
+        resumenHTML += `
+          <div style="background:rgba(255,255,255,0.1); padding:15px; margin:10px 0; border-radius:10px;">
+            <p><strong>${i+1}.</strong> ${preg.q}</p>
+            <p style="color:${color};">${icono} Tu respuesta: <strong>${r.respuesta}</strong></p>
+            ${!r.correcta ? `<p style="color:#00ffaa;">Respuesta correcta: <strong>${preg.a}</strong></p>` : ''}
+          </div>`;
+      });
+
+      document.getElementById("nombreFinal").textContent = nombreUsuario;
+      document.getElementById("notaFinal").textContent = correctas;
+      document.getElementById("intentosFinal").textContent = intentos;
+      document.getElementById("resumen").innerHTML = resumenHTML;
+    }
+  </script>
+</body>
+</html>
